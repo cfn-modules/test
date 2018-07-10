@@ -31,7 +31,11 @@ const packageAndDeploy = async (templateFile, stackName, parameters, capabilitie
     const out2 = await deploy(packagedFile, stackName, parameters, capabilities);
     return `${out1}${out2}`;
   } finally {
-    fs.unlinkSync(packagedFile);
+    try {
+      fs.unlinkSync(packagedFile);
+    } catch (e) {
+      // do nothing
+    }
   }
 };
 
