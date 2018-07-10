@@ -10,10 +10,8 @@ const createClient = async (service, options = {}) => {
 
 const package = async (templateFile, packagedFile) => {
   const command = `aws cloudformation package --template-file ${templateFile} --s3-bucket mwittig-cfn-modules --output-template-file ${packagedFile}`;
-  console.info(command);
   const {stdout, stderr} = await exec(command);
-  console.info('stdout', stdout);
-  console.error('stderr', stderr);
+  return `${command}:\n${stderr}${stdout}`;
 };
 const deploy = async (packagedFile, stackName, parameters, capabilities) => {
   let command = `aws cloudformation deploy --template-file ${packagedFile} --stack-name '${stackName}' --s3-bucket mwittig-cfn-modules`;
@@ -23,16 +21,15 @@ const deploy = async (packagedFile, stackName, parameters, capabilities) => {
   if (capabilities.length > 0) {
     command += ` --capabilities ${capabilities.join(' ')}`;
   }
-  console.info(command);
   const {stdout, stderr} = await exec(command);
-  console.info('stdout', stdout);
-  console.error('stderr', stderr);
+  return `${command}:\n${stderr}${stdout}`;
 };
 const packageAndDeploy = async (templateFile, stackName, parameters, capabilities) => {
   const packagedFile = `/tmp/${stackName}`;
   try {
-    await package(templateFile, packagedFile);
-    await deploy(packagedFile, stackName, parameters, capabilities);
+    const out1 = await package(templateFile, packagedFile);
+    const out2 = await deploy(packagedFile, stackName, parameters, capabilities);
+    return `${out1}${out2}`;
   } finally {
     fs.unlinkSync(packagedFile);
   }
@@ -47,7 +44,7 @@ exports.deleteKey = async (keyName) => {}; // TODO implement
 
 exports.stackName = () => `cfn-test-${crypto.randomBytes(8).toString('hex')}`;
 exports.createStack = async (templateFile, stackName, parameters) => {
-  await packageAndDeploy(templateFile, stackName, parameters, ['CAPABILITY_IAM']);
+  return await packageAndDeploy(templateFile, stackName, parameters, ['CAPABILITY_IAM']);
 };
 exports.getStackOutputs = async (stackName) => {
   const cloudformation = await createClient('CloudFormation', {apiVersion: '2010-05-15'});
@@ -64,4 +61,5 @@ exports.deleteStack = async (stackName) => {
   const cloudformation = await createClient('CloudFormation', {apiVersion: '2010-05-15'});
   await cloudformation.deleteStack({StackName: stackName}).promise();
   await cloudformation.waitFor('stackDeleteComplete', {StackName: stackName}).promise();
+  return `AWS.CloudFormation().deleteStack(${stackName})\nAWS.CloudFormation().waitFor(stackDeleteComplete, ${stackName})\n`;
 };
