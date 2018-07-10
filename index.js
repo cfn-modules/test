@@ -1,13 +1,13 @@
 const { execSync } = require('child_process');
 const crypto = require('crypto');
+const fs = require('fs');
 const AWS = require('aws-sdk');
 
 const createClient = async (service, options = {}) => {
   return new AWS[service](options);
 };
 
-const package = async (templateFile) => {
-  const packagedFile = `packaged-${crypto.randomBytes(8).toString('hex')}.yml`;
+const package = async (templateFile, packagedFile) => {
   execSync(`aws cloudformation package --template-file ${templateFile} --s3-bucket mwittig-cfn-modules --output-template-file ${packagedFile}`);
   return packagedFile;
 };
@@ -22,8 +22,13 @@ const deploy = async (packagedFile, stackName, parameters, capabilities) => {
   execSync(command);
 };
 const packageAndDeploy = async (templateFile, stackName, parameters, capabilities) => {
-  const packagedFile = await package(templateFile);
-  await deploy(packagedFile, stackName, parameters, capabilities);
+  const packagedFile = `/tmp/${stackName}`;
+  try {
+    await package(templateFile, packagedFile);
+    await deploy(packagedFile, stackName, parameters, capabilities);
+  } finally {
+    fs.unlinkSync(packagedFile);
+  }
 };
 
 /*
