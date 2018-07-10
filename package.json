@@ -1,6 +1,6 @@
 {
   "name": "@cfn-modules/test",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "Test framework for cfn-modules",
   "author": "Michael Wittig <michael@widdix.de>",
   "license": "Apache-2.0",
@@ -11,7 +11,8 @@
     "eslint": "5.1.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/eslint ."
+    "eslint": "eslint .",
+    "test": "eslint ."
   },
   "keywords": [],
   "homepage": "https://github.com/cfn-modules",

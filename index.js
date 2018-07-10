@@ -1,4 +1,5 @@
-const { execSync } = require('child_process');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 const crypto = require('crypto');
 const fs = require('fs');
 const AWS = require('aws-sdk');
@@ -8,8 +9,11 @@ const createClient = async (service, options = {}) => {
 };
 
 const package = async (templateFile, packagedFile) => {
-  execSync(`aws cloudformation package --template-file ${templateFile} --s3-bucket mwittig-cfn-modules --output-template-file ${packagedFile}`);
-  return packagedFile;
+  const command = `aws cloudformation package --template-file ${templateFile} --s3-bucket mwittig-cfn-modules --output-template-file ${packagedFile}`;
+  console.info(command);
+  const {stdout, stderr} = await exec(command);
+  console.info('stdout', stdout);
+  console.error('stderr', stderr);
 };
 const deploy = async (packagedFile, stackName, parameters, capabilities) => {
   let command = `aws cloudformation deploy --template-file ${packagedFile} --stack-name '${stackName}' --s3-bucket mwittig-cfn-modules`;
@@ -19,7 +23,10 @@ const deploy = async (packagedFile, stackName, parameters, capabilities) => {
   if (capabilities.length > 0) {
     command += ` --capabilities ${capabilities.join(' ')}`;
   }
-  execSync(command);
+  console.info(command);
+  const {stdout, stderr} = await exec(command);
+  console.info('stdout', stdout);
+  console.error('stderr', stderr);
 };
 const packageAndDeploy = async (templateFile, stackName, parameters, capabilities) => {
   const packagedFile = `/tmp/${stackName}`;
