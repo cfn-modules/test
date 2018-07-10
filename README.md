@@ -4,3 +4,6 @@
 # cfn-modules: Test framework
 
 This is an internal module.
+
+## Prerequisites
+* AWS CLI installed ([install](https://docs.aws.amazon.com/cli/latest/userguide/installing.html))
