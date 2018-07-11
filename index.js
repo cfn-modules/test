@@ -56,8 +56,9 @@ exports.getStackOutputs = async (stackName) => {
   if (data.Stacks.length !== 1) {
     throw new Error(`expected one stack, saw ${data.Stacks.length}`);
   } else {
-    return data.Stacks[0].Outputs.reduce((options, option) => {
-      options[option.OutputKey] = option.OutputValue;
+    return data.Stacks[0].Outputs.reduce((outputs, output) => {
+      outputs[output.OutputKey] = output.OutputValue;
+      return outputs;
     }, {});
   }
 };
