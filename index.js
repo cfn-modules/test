@@ -9,14 +9,25 @@ const createClient = async (service, options = {}) => {
   return new AWS[service](options);
 };
 
+const getCfnPackageBucketName = () => {
+  const env = 'CFN_PACKAGE_BUCKET_NAME';
+  if (env in process.env) {
+    return process.env[env];
+  } else {
+    throw new Error(`environment variable ${env} not set`);
+  }
+};
+
 const package = async (templateFile, packagedFile) => {
-  const command = `aws cloudformation package --template-file ${templateFile} --s3-bucket mwittig-cfn-modules --output-template-file ${packagedFile}`;
+  const cfnPackageBucketName = await getCfnPackageBucketName();
+  const command = `aws cloudformation package --template-file ${templateFile} --s3-bucket ${cfnPackageBucketName} --output-template-file ${packagedFile}`;
   const {stdout, stderr} = await exec(command);
   return `${command}:\n${stderr}${stdout}`;
 };
 
 const deploy = async (packagedFile, stackName, parameters, capabilities) => {
-  let command = `aws cloudformation deploy --template-file ${packagedFile} --stack-name '${stackName}' --s3-bucket mwittig-cfn-modules`;
+  const cfnPackageBucketName = await getCfnPackageBucketName();
+  let command = `aws cloudformation deploy --template-file ${packagedFile} --stack-name '${stackName}' --s3-bucket ${cfnPackageBucketName}`;
   if (Object.keys(parameters).length > 0) {
     command += ` --parameter-overrides ${Object.keys(parameters).map((parameterKey) => `'${parameterKey}=${parameters[parameterKey]}'`).join(' ')}`;
   }
