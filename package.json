@@ -1,6 +1,6 @@
 {
   "name": "@cfn-modules/test",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Test framework for cfn-modules",
   "author": "Michael Wittig <michael@widdix.de>",
   "license": "Apache-2.0",

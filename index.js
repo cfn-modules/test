@@ -9,7 +9,7 @@ const createClient = async (service, options = {}) => {
   return new AWS[service](options);
 };
 
-const getCfnPackageBucketName = () => {
+const getCfnPackageBucketName = async () => {
   const env = 'CFN_PACKAGE_BUCKET_NAME';
   if (env in process.env) {
     return process.env[env];
