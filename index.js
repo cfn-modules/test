@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const AWS = require('aws-sdk');
 const sequest = require('sequest');
+const serializeError = require('serialize-error');
 
 const createClient = async (service, options = {}) => {
   return new AWS[service](options);
@@ -53,8 +54,29 @@ const packageAndDeploy = async (templateFile, stackName, parameters, capabilitie
   }
 };
 
+const sleep = async (ms) => new Promise((resolve) => {
+  setTimeout(() => {
+    resolve();
+  }, ms);
+});
+
+const retry = async (fn, tries = 30, delay = 10000) => {
+  const errors = [];
+  for (const i of Array(tries).fill().map((v, i) => i)) {
+    try {
+      return await fn();
+    } catch (err) {
+      err.message = `try[${i}]: ${err.message}`;
+      errors.push(err);
+      await sleep(delay);
+    }
+  }
+  throw new Error(`retry failed: ${errors.map((err) => JSON.stringify(serializeError(err))).join('\n')}`);
+};
+exports.retry = retry;
+
 exports.probeSSH = async (connect, key, command = 'uptime') => {
-  return new Promise((resolve, reject) => {
+  return retry(() => new Promise((resolve, reject) => {
     sequest(connect, {
       privateKey: key.private,
       command: command
@@ -65,7 +87,7 @@ exports.probeSSH = async (connect, key, command = 'uptime') => {
         resolve(stdout);
       }
     });
-  });
+  }), 3);
 };
 
 exports.createKey = async (keyName) => {

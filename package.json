@@ -1,12 +1,13 @@
 {
   "name": "@cfn-modules/test",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Test framework for cfn-modules",
   "author": "Michael Wittig <michael@widdix.de>",
   "license": "Apache-2.0",
   "dependencies": {
     "aws-sdk": "2.271.1",
-    "sequest": "0.10.0"
+    "sequest": "0.10.0",
+    "serialize-error": "2.1.0"
   },
   "devDependencies": {
     "eslint": "5.1.0"
