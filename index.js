@@ -6,6 +6,33 @@ const AWS = require('aws-sdk');
 const sequest = require('sequest');
 const serializeError = require('serialize-error');
 
+const CLOUDFORMATION_OPTIONS = {
+  apiVersion: '2010-05-15',
+  maxRetries: 11,
+  retryDelayOptions: {
+    /*
+    | retryCount | sleep in s | maxRetries |
+    | ---------- | ---------- | ---------- |
+    | 0          | 1          | 1          |
+    | 1          | 2          | 2          |
+    | 2          | 4          | 3          |
+    | 3          | 8          | 4          |
+    | 4          | 16         | 5          |
+    | 5          | 32         | 6          |
+    | 6          | 64         | 7          |
+    | 7          | 128        | 8          |
+    | 8          | 256        | 9          |
+    | 9          | 512        | 10         |
+    | 10         | 1024       | 11         |
+    */
+    customBackoff: (retryCount) => Math.pow(2, retryCount) * 1000
+  }
+};
+
+const EC2_OPTIONS = {
+  apiVersion: '2016-11-15'
+};
+
 const createClient = async (service, options = {}) => {
   return new AWS[service](options);
 };
@@ -91,7 +118,7 @@ exports.probeSSH = async (connect, key, command = 'uptime') => {
 };
 
 exports.createKey = async (keyName) => {
-  const ec2 = await createClient('EC2', {apiVersion: '2016-11-15'});
+  const ec2 = await createClient('EC2', EC2_OPTIONS);
   const data = await ec2.createKeyPair({KeyName: keyName}).promise();
   return {
     name: keyName,
@@ -100,7 +127,7 @@ exports.createKey = async (keyName) => {
 }; 
 
 exports.deleteKey = async (keyName) => {
-  const ec2 = await createClient('EC2', {apiVersion: '2016-11-15'});
+  const ec2 = await createClient('EC2', EC2_OPTIONS);
   return await ec2.deleteKeyPair({KeyName: keyName}).promise();
 };
 
@@ -113,7 +140,7 @@ exports.createStack = async (templateFile, stackName, parameters) => {
 };
 
 exports.getStackOutputs = async (stackName) => {
-  const cloudformation = await createClient('CloudFormation', {apiVersion: '2010-05-15'});
+  const cloudformation = await createClient('CloudFormation', CLOUDFORMATION_OPTIONS);
   const data = await cloudformation.describeStacks({StackName: stackName}).promise();
   if (data.Stacks.length !== 1) {
     throw new Error(`expected one stack, saw ${data.Stacks.length}`);
@@ -126,7 +153,7 @@ exports.getStackOutputs = async (stackName) => {
 };
 
 exports.deleteStack = async (stackName) => {
-  const cloudformation = await createClient('CloudFormation', {apiVersion: '2010-05-15'});
+  const cloudformation = await createClient('CloudFormation', CLOUDFORMATION_OPTIONS);
   await cloudformation.deleteStack({StackName: stackName}).promise();
   await cloudformation.waitFor('stackDeleteComplete', {StackName: stackName}).promise();
   return `AWS.CloudFormation().deleteStack(${stackName})\nAWS.CloudFormation().waitFor(stackDeleteComplete, ${stackName})\n`;
