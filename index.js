@@ -114,7 +114,7 @@ exports.probeSSH = async (connect, key, command = 'uptime') => {
         resolve(stdout);
       }
     });
-  }), 10);
+  }));
 };
 
 exports.createKey = async (keyName) => {
