@@ -25,7 +25,7 @@ const CLOUDFORMATION_OPTIONS = {
     | 9          | 512        | 10         |
     | 10         | 1024       | 11         |
     */
-    customBackoff: (retryCount) => Math.pow(2, retryCount) * 1000
+    customBackoff: (retryCount) => 1 + Math.random() * Math.pow(2, retryCount) * 1000
   }
 };
 
