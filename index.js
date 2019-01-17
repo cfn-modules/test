@@ -143,15 +143,15 @@ exports.createObject = async (bucketName, objectKey, filePath) => {
     Key: objectKey,
     Body: fileData
   }).promise();
-}
+};
 
-exports.deleteObject = async (bucketName, objectKey, objectBody) => {
+exports.deleteObject = async (bucketName, objectKey) => {
   const s3 = await createClient('S3', S3_OPTIONS);
   return await s3.deleteObject({
     Bucket: bucketName,
     Key: objectKey
   }).promise();
-}
+};
 
 exports.stackName = () => `cfn-test-${crypto.randomBytes(8).toString('hex')}`;
 
