@@ -33,6 +33,10 @@ const EC2_OPTIONS = {
   apiVersion: '2016-11-15'
 };
 
+const S3_OPTIONS = {
+  apiVersion: '2006-03-01'
+};
+
 const createClient = async (service, options = {}) => {
   return new AWS[service](options);
 };
@@ -130,6 +134,24 @@ exports.deleteKey = async (keyName) => {
   const ec2 = await createClient('EC2', EC2_OPTIONS);
   return await ec2.deleteKeyPair({KeyName: keyName}).promise();
 };
+
+exports.createObject = async (bucketName, objectKey, filePath) => {
+  const fileData = fs.readFileSync(filePath);
+  const s3 = await createClient('S3', S3_OPTIONS);
+  return await s3.putObject({
+    Bucket: bucketName,
+    Key: objectKey,
+    Body: fileData
+  }).promise();
+}
+
+exports.deleteObject = async (bucketName, objectKey, objectBody) => {
+  const s3 = await createClient('S3', S3_OPTIONS);
+  return await s3.deleteObject({
+    Bucket: bucketName,
+    Key: objectKey
+  }).promise();
+}
 
 exports.stackName = () => `cfn-test-${crypto.randomBytes(8).toString('hex')}`;
 
