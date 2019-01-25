@@ -153,6 +153,31 @@ exports.deleteObject = async (bucketName, objectKey) => {
   }).promise();
 };
 
+exports.emptyBucket = async (bucketName) => {
+  const s3 = await createClient('S3', S3_OPTIONS);
+  let continuationToken = undefined;
+  while(continuationToken !== null) {
+    const data = await s3.listObjectsV2({
+      Bucket: bucketName,
+      MaxKeys: 1000, // up to 1000
+      ContinuationToken: continuationToken
+    }).promise();
+    if (data.Contents.length > 0) {
+      await s3.deleteObjects({
+        Bucket: bucketName,
+        Delete: {
+          Objects: data.Contents.map((content) => ({Key: content.Key}))
+        }
+      }).promise();
+    }
+    if (data.IsTruncated === true) {
+      continuationToken = data.NextContinuationToken;
+    } else {
+      continuationToken = null;
+    }
+  }
+};
+
 exports.stackName = () => `cfn-test-${crypto.randomBytes(8).toString('hex')}`;
 
 exports.keyName = () => `cfn-test-${crypto.randomBytes(8).toString('hex')}`;
