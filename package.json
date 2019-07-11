@@ -5,12 +5,12 @@
   "author": "Michael Wittig <michael@widdix.de>",
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-sdk": "2.454.0",
+    "aws-sdk": "2.491.0",
     "sequest": "0.10.0",
     "serialize-error": "4.1.0"
   },
   "devDependencies": {
-    "eslint": "5.16.0"
+    "eslint": "6.0.1"
   },
   "scripts": {
     "eslint": "eslint .",
