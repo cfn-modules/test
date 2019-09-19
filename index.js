@@ -187,7 +187,7 @@ exports.createStack = async (templateFile, stackName, parameters) => {
 };
 
 exports.awaitStack = async (stackName) => {
-  const WAIT_IN_SECONDS = 60;
+  const WAIT_IN_SECONDS = 30;
   const MAX_WAIT_TIME_IN_MILLIS = 45 * 60 * 1000;
   const cloudformation = await createClient('CloudFormation', CLOUDFORMATION_OPTIONS);
   const waitForStackExistsStarted = Date.now();
@@ -223,8 +223,16 @@ exports.getStackOutputs = async (stackName) => {
 };
 
 exports.deleteStack = async (stackName) => {
+  const WAIT_IN_SECONDS = 30;
+  const MAX_WAIT_TIME_IN_SECONDS = 45 * 60;
   const cloudformation = await createClient('CloudFormation', CLOUDFORMATION_OPTIONS);
   await cloudformation.deleteStack({StackName: stackName}).promise();
-  await cloudformation.waitFor('stackDeleteComplete', {StackName: stackName}).promise();
+  await cloudformation.waitFor('stackDeleteComplete', {
+    StackName: stackName,
+    '$waiter': {
+      delay: WAIT_IN_SECONDS,
+      maxAttempts: Math.ceil(MAX_WAIT_TIME_IN_SECONDS / WAIT_IN_SECONDS)
+    }
+  }).promise();
   return `AWS.CloudFormation().deleteStack(${stackName})\nAWS.CloudFormation().waitFor(stackDeleteComplete, ${stackName})\n`;
 };
