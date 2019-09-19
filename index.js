@@ -186,6 +186,29 @@ exports.createStack = async (templateFile, stackName, parameters) => {
   return await packageAndDeploy(templateFile, stackName, parameters, ['CAPABILITY_IAM']);
 };
 
+exports.awaitStack = async (stackName) => {
+  const WAIT_IN_SECONDS = 60;
+  const MAX_WAIT_TIME_IN_MILLIS = 45 * 60 * 1000;
+  const cloudformation = await createClient('CloudFormation', CLOUDFORMATION_OPTIONS);
+  const waitForStackExistsStarted = Date.now();
+  await cloudformation.waitFor('stackExists', {
+    StackName: stackName,
+    '$waiter': {
+      delay: WAIT_IN_SECONDS,
+      maxAttempts: Math.ceil(MAX_WAIT_TIME_IN_MILLIS / 1000 / WAIT_IN_SECONDS)
+    }}).promise();
+  const waitForStackExistsEnded = Date.now();
+  const waitForStackDurationInMillis = waitForStackExistsEnded - waitForStackExistsStarted;
+  const maxWaitTimeInSeconds = Math.max(WAIT_IN_SECONDS, Math.round((MAX_WAIT_TIME_IN_MILLIS - waitForStackDurationInMillis) / 1000));
+  await cloudformation.waitFor('stackCreateComplete', {
+    StackName: stackName,
+    '$waiter': {
+      delay: WAIT_IN_SECONDS,
+      maxAttempts: Math.ceil(maxWaitTimeInSeconds / WAIT_IN_SECONDS)
+    }}).promise();
+  return `AWS.CloudFormation().waitFor(stackCreateComplete, ${stackName})\nAWS.CloudFormation().waitFor(stackCreateComplete, ${stackName})\n`;
+};
+
 exports.getStackOutputs = async (stackName) => {
   const cloudformation = await createClient('CloudFormation', CLOUDFORMATION_OPTIONS);
   const data = await cloudformation.describeStacks({StackName: stackName}).promise();
