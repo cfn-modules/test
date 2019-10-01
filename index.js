@@ -5,6 +5,7 @@ const fs = require('fs');
 const AWS = require('aws-sdk');
 const sequest = require('sequest');
 const serializeError = require('serialize-error');
+const axios = require('axios');
 
 const CLOUDFORMATION_OPTIONS = {
   apiVersion: '2010-05-15',
@@ -119,6 +120,14 @@ exports.probeSSH = async (connect, key, command = 'uptime') => {
       }
     });
   }));
+};
+
+exports.probeHttpGet = async (url) => {
+  return retry(() => axios.get(url));
+};
+
+exports.probeHttpPost = async (url) => {
+  return retry(() => axios.post(url));
 };
 
 exports.createKey = async (keyName) => {
