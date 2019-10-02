@@ -94,16 +94,15 @@ const sleep = async (ms) => new Promise((resolve) => {
 
 const retry = async (fn, tries = 30, delay = 10000) => {
   const errors = [];
-  for (const i of Array(tries).fill().map((v, i) => i)) {
+  while (errors.length < tries) {
     try {
       return await fn();
     } catch (err) {
-      err.message = `try[${i}]: ${err.message}`;
       errors.push(err);
       await sleep(delay);
     }
   }
-  throw new Error(`retry failed: ${errors.map((err) => JSON.stringify(serializeError(err))).join('\n')}`);
+  throw new Error(`retry failed: ${errors.map((err, i) => `try[${i}]: ${JSON.stringify(serializeError(err))}`).join('\n')}`);
 };
 exports.retry = retry;
 
@@ -123,11 +122,29 @@ exports.probeSSH = async (connect, key, command = 'uptime') => {
 };
 
 exports.probeHttpGet = async (url) => {
-  return retry(() => axios.get(url));
+  return retry(() => {
+    return axios.get(url)
+      .catch(err => {
+        if (err.response && err.response.status) {
+          return Promise.reject(new Error(`saw http status code ${err.response.status}`));
+        } else {
+          return Promise.reject(err);
+        }
+      });
+  });
 };
 
 exports.probeHttpPost = async (url) => {
-  return retry(() => axios.post(url));
+  return retry(() => {
+    return axios.post(url)
+      .catch(err => {
+        if (err.response && err.response.status) {
+          return Promise.reject(new Error(`saw http status code ${err.response.status}`));
+        } else {
+          return Promise.reject(err);
+        }
+      });
+  });
 };
 
 exports.createKey = async (keyName) => {
