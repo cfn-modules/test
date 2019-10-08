@@ -98,11 +98,14 @@ const retry = async (fn, tries = 30, delay = 10000) => {
     try {
       return await fn();
     } catch (err) {
-      errors.push(err);
+      errors.push({
+        date: new Date(),
+        err
+      });
       await sleep(delay);
     }
   }
-  throw new Error(`retry failed: ${errors.map((err, i) => `try[${i}]: ${JSON.stringify(serializeError(err))}`).join('\n')}`);
+  throw new Error(`retry failed: ${errors.map((error, i) => `try[${(i+1)} | ${error.date.toISOString()}]: ${JSON.stringify(serializeError(error.err))}`).join('\n')}`);
 };
 exports.retry = retry;
 
