@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const AWS = require('aws-sdk');
 const sequest = require('sequest');
-const serializeError = require('serialize-error');
+const {serializeError} = require('serialize-error');
 const axios = require('axios');
 
 const CLOUDFORMATION_OPTIONS = {
@@ -53,7 +53,7 @@ const getCfnPackageBucketName = async () => {
 
 const package = async (templateFile, packagedFile) => {
   const cfnPackageBucketName = await getCfnPackageBucketName();
-  const command = `aws cloudformation package --template-file ${templateFile} --s3-bucket ${cfnPackageBucketName} --output-template-file ${packagedFile}`;
+  const command = `aws cloudformation package --template-file ${templateFile} --s3-bucket ${cfnPackageBucketName} --output-template-file ${packagedFile} --force-upload`;
   const {stdout, stderr} = await exec(command);
   return `${command}:\n${stderr}${stdout}`;
 };
