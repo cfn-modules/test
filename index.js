@@ -91,6 +91,7 @@ const sleep = async (ms) => new Promise((resolve) => {
     resolve();
   }, ms);
 });
+exports.sleep = sleep;
 
 const retry = async (fn, tries = 30, delay = 10000) => {
   const errors = [];
@@ -235,7 +236,7 @@ exports.awaitStack = async (stackName) => {
       delay: WAIT_IN_SECONDS,
       maxAttempts: Math.ceil(maxWaitTimeInSeconds / WAIT_IN_SECONDS)
     }}).promise();
-  return `AWS.CloudFormation().waitFor(stackCreateComplete, ${stackName})\nAWS.CloudFormation().waitFor(stackCreateComplete, ${stackName})\n`;
+  return `AWS.CloudFormation().waitFor(stackExists, ${stackName})\nAWS.CloudFormation().waitFor(stackCreateComplete, ${stackName})\n`;
 };
 
 exports.getStackOutputs = async (stackName) => {
