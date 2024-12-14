@@ -11,7 +11,7 @@
     "serialize-error": "11.0.3"
   },
   "devDependencies": {
-    "eslint": "9.16.0"
+    "eslint": "9.17.0"
   },
   "scripts": {
     "eslint": "eslint .",
