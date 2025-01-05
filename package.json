@@ -8,7 +8,7 @@
     "axios": "1.7.9",
     "aws-sdk": "2.1692.0",
     "sequest": "0.11.0",
-    "serialize-error": "11.0.3"
+    "serialize-error": "12.0.0"
   },
   "devDependencies": {
     "eslint": "9.17.0"
